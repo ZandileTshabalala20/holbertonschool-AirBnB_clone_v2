@@ -1,28 +1,21 @@
 #!/usr/bin/python3
-'''
-    Implementation of the User class which inherits from BaseModel
-'''
+"""This module defines a class User"""
 from models.base_model import BaseModel, Base
+from models.place import Place
 from sqlalchemy import Column, String, ForeignKey
 from sqlalchemy.orm import relationship
-from os import environ
+from models.review import Review
 
 
 class User(BaseModel, Base):
-    '''
-        Definition of the User class
-    '''
+    """This class defines a user by various attributes"""
     __tablename__ = 'users'
     email = Column(String(128), nullable=False)
     password = Column(String(128), nullable=False)
-    first_name = Column(String(128))
-    last_name = Column(String(128))
+    first_name = Column(String(128), nullable=True)
+    last_name = Column(String(128), nullable=True)
 
-    if environ.get("HBNB_TYPE_STORAGE") == "db":
-        places = relationship("Place", backref="user", cascade="all, delete")
-        reviews = relationship("Review", backref="user", cascade="all, delete")
-    else:
-        email = ""
-        password = ""
-        first_name = ""
-        last_name = ""
+    places = relationship('Place', backref='user',
+                          cascade='all, delete-orphan')
+    reviews = relationship('Review', backref='user',
+                           cascade='all, delete-orphan')
