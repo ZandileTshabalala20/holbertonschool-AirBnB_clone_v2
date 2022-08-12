@@ -1,60 +1,75 @@
 #!/usr/bin/python3
-"""
-Fabric script generates .tgz archive from contents of web_static directory
-"""
-
-from fabric.api import local, env, run, put
-from datetime import datetime
-import os
+""" Transfers file from local to remote """
+from fabric.api import *
+import datetime
 
 
-env.hosts = ['54.152.200.18', '54.224.57.104']
+env.use_ssh_config = True
+env.hosts = ['35.237.82.133', '35.196.231.32']
+env.user = 'ubuntu'
+env.key_filename = '~/.ssh/holberton'
+date = datetime.datetime.now().strftime("%Y%m%d%I%M%S")
+
+
+def transfer():
+    """ transfers a specific file """
+    put('./0-setup_web_static.sh', '/tmp/')
 
 
 def do_pack():
-    """ return archive path if successful """
-    cur_time = datetime.now().strftime("%Y%m%d%H%M%S")
-
-    local("mkdir -p versions")
-    try:
-        local("tar -cvzf versions/web_static_{}.tgz web_static".format(
-            cur_time))
-        return ("versions/web_static_{}.tgz".format(cur_time))
-    except:
+    """
+        Generates a .tgz archive from the contents of web_static folder
+        Return: the archive path if the archive has been correctly generated
+        Otherwise Return: None
+    """
+    local("mkdir -p ./versions")
+    res = local("tar czvf ./versions/web_static_{}.tgz\
+            ./web_static/*".format(date))
+    if res.succeeded:
+        return "./versions/web_static_{}.tgz".format(date)
+    else:
         return None
 
 
 def do_deploy(archive_path):
-    """ return `True` if successful """
-
-    if os.path.exists(archive_path):
-        return None
-    else:
-        return False
-
-    pathname = "/data/web_static"
-    filename = os.path.basename(archive_path)
-    name = os.path.splitext(filename)
-
+    """ Distributes an archive to multiple webservers """
     try:
-        put(archive_path, "/tmp")
-        run("mkdir -p /data/web_static/releases/{}".format(name))
-        run("tar -xzf /tmp/{} -C /data/web_static/releases/{}".format(
-            filename, name))
-        run("rm /tmp/{}".format(filename))
-        run("mv /data/web/static/releases/{}".format(name))
-        run("rm -rf /data/web_static/relases/{}/web_static".format(name))
-        run("rm -rf /data/web_static/current")
-        run("ln -s {}/releases/{} {}/current".format(pathname, name))
+        if not archive_path:
+            return False
+        try:
+            name = archive_path.split('/')[-1]
+        except:
+            name = archive_path
+
+        put(archive_path, '/tmp/')
+        run("mkdir -p /data/web_static/releases/{}/".format(name[:-4]))
+        with cd('/tmp/'):
+            run('tar xzf {} -C /data/web_static/releases/{}/'.format(name,
+                name[:-4]))
+            sudo('rm ./{}'.format(name))
+        with cd('/data/web_static/'):
+            run('mv releases/{}/web_static/*\
+                    /data/web_static/releases/{}/'
+                .format(name[:-4], name[:-4]))
+            run('rm -rf ./current')
+            run('ln -s /data/web_static/releases/{}/\
+                    /data/web_static/current'.format(name[:-4]))
         return True
     except:
         return False
 
 
 def deploy():
-    """ returns value of do_deploy """
-    archive = do_pack()
-    if archive is True:
-        return do_deploy(archive)
-    else:
+    """ Fabric Script: Distributes an archive to the web servers
+    """
+    """call do_pack and store the path of the created archive
+        return false if no archive has been created
+        call do_deploy(archive_path) using the new path of the new archive
+        return the value of do_deploy
+    """
+
+    path = do_pack()
+    if path is None:
         return False
+    result = do_deploy(path)
+    return result

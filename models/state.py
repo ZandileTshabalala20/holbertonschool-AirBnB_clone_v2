@@ -1,34 +1,35 @@
 #!/usr/bin/python3
-""" holds class State"""
+"""This is the state class"""
+
 import models
+import sqlalchemy
 from models.base_model import BaseModel, Base
 from models.city import City
-from os import getenv
-import sqlalchemy
-from sqlalchemy import Column, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
+from os import environ
 
 
 class State(BaseModel, Base):
-    """Representation of state """
-    if models.storage_t == "db":
-        __tablename__ = 'states'
-        name = Column(String(128), nullable=False)
-        cities = relationship("City", backref="state")
-    else:
-        name = ""
+    """This is the class for State
+    Attributes:
+        name: input name
+    """
 
-    def __init__(self, *args, **kwargs):
-        """initializes state"""
-        super().__init__(*args, **kwargs)
+    __tablename__ = 'states'
+    name = Column(String(128), nullable=False)
+    cities = relationship("City", cascade="all, delete", backref="state")
 
-    if models.storage_t != "db":
+    if ('HBNB_TYPE_STORAGE' not in environ or
+            environ['HBNB_TYPE_STORAGE'] != 'db'):
+        """Conditional getters and setters for review and amenities
+            Only executed when file storage is being used
+        """
         @property
         def cities(self):
-            """getter for list of city instances related to the state"""
-            city_list = []
-            all_cities = models.storage.all(City)
-            for city in all_cities.values():
-                if city.state_id == self.id:
-                    city_list.append(city)
-            return city_list
+            """Returns the list of City instances with equal state_id"""
+            from models import storage
+            cities = storage.all(City)
+            self.__cities = [city for city in cities.values()
+                             if city.state_id == self.id]
+            return self.__cities

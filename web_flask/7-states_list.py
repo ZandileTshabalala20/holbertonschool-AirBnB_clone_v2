@@ -1,24 +1,20 @@
 #!/usr/bin/python3
-"""
-start Flask web app
-"""
+"""Routers and Controllers"""
 from flask import Flask, render_template
-from models import storage, State
-
-
+from models import storage
 app = Flask(__name__)
-
-
-@app.route('/states_lists', strict_slashes=False)
-def state_list():
-    """ display HTML page """
-    return render_template('7-states_list.html', state_stor=storage.all(State))
+app.url_map.strict_slashes = False
 
 
 @app.teardown_appcontext
-def close_session(exceptions):
-    """ remove SQLAlchemy session """
+def tearDown(self):
     storage.close()
 
+
+@app.route('/states_list')
+def list_states_route():
+    states = storage.all("State").values()
+    return render_template('7-states_list.html', states=states)
+
 if __name__ == "__main__":
-    app.run('0.0.0.0', port=5000)
+    app.run(port=5000, host='0.0.0.0')

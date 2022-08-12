@@ -30,7 +30,7 @@
 
 .title_box h2 {
     text-align: center;
-    margin: 25px 0px 40px 30%;
+    margin: 15px 0px 20px ;
 }
 .price_by_night {
     display: flex;
@@ -65,17 +65,17 @@
 }
 
 .information .max_guest {
-    background: url("../images/icon_group.png") no-repeat top center;
+    background: url("../static/images/icon_group.png") no-repeat top center;
     width: 100px;
 }
 
 .information .number_rooms {
-    background: url("../images/icon_bed.png") no-repeat top center;
+    background: url("../static/images/icon_bed.png") no-repeat top center;
     width: 100px;
 }
 
 .information .number_bathrooms {
-    background: url("../images/icon_bath.png") no-repeat top center;
+    background: url("../static/images/icon_bath.png") no-repeat top center;
     width: 100px;
 }
 
