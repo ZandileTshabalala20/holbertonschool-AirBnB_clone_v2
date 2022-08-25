@@ -19,16 +19,13 @@ server {
 	root /data/;
 	index index.html index.htm;
 	add_header X-Served-By \$hostname;	
-
 	location / {
 		root /srv/www;
 		index index.html;
 	}
-
 	location /redirect_me {
 		return 301 https://www.youtube.com/watch?v=QH2-TGUlwu4;
 	}
-
 	location /hbnb_static {
 		alias /data/web_static/current;
 		index index.html;
